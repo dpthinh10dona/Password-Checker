@@ -1,7 +1,7 @@
 // =====================================================================
-// 1. PASSWORD CHECKER LOGIC
+// 1. PASSWORD CHECKER LOGIC (KHU VỰC TRÊN)
 // =====================================================================
-const input = document.getElementById('pwdInput');
+const checkerInput = document.getElementById('pwdInput'); // Chỉ dùng cho phần Checker ở trên
 const strengthSection = document.getElementById('strengthSection');
 const strengthBar = document.getElementById('strengthBar');
 const clearBtn = document.getElementById('clearBtn');
@@ -17,25 +17,77 @@ const regexDigit = /[0-9]/;
 const regexSymbol = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/;
 const strengthColors = ['#ff4d4d', '#ff944d', '#ffd24d', '#a3ff4d', '#00c49a'];
 
-input.addEventListener('focus', () => strengthSection.classList.add('show'));
-input.addEventListener('blur', () => {
-    setTimeout(() => { if (document.activeElement !== input) strengthSection.classList.remove('show'); }, 100);
-});
+if (checkerInput) {
+    checkerInput.addEventListener('focus', () => strengthSection && strengthSection.classList.add('show'));
+    checkerInput.addEventListener('blur', () => {
+        setTimeout(() => { 
+            if (document.activeElement !== checkerInput && strengthSection) {
+                strengthSection.classList.remove('show'); 
+            }
+        }, 100);
+    });
 
-clearBtn.addEventListener('click', () => {
-    input.value = '';
-    input.dispatchEvent(new Event('input'));
-    input.focus();
-});
+    checkerInput.addEventListener('input', () => {
+        const val = checkerInput.value;
+        if (reqUpper) reqUpper.classList.toggle('valid', regexUpper.test(val));
+        if (reqDigit) reqDigit.classList.toggle('valid', regexDigit.test(val));
+        if (reqSymbol) reqSymbol.classList.toggle('valid', regexSymbol.test(val));
 
-toggleVisBtn.addEventListener('click', () => {
-    input.type = input.type === 'password' ? 'text' : 'password';
-    toggleVisBtn.textContent = input.type === 'password' ? '🙈' : '🙉';
-    input.focus();
-});
+        if (val === '') {
+            if (strengthBar) {
+                strengthBar.style.width = '0%';
+                strengthBar.style.backgroundColor = 'transparent';
+            }
+            if (time) time.style.display = 'none';
+            if (crackInfo) crackInfo.style.display = 'none';
+            checkPasswordLeak('');
+            return;
+        }
+
+        if (typeof zxcvbn === 'function') {
+            const result = zxcvbn(val);
+            if (strengthBar) {
+                strengthBar.style.width = `${(result.score === 0 ? 20 : (result.score + 1) * 20)}%`;
+                strengthBar.style.backgroundColor = strengthColors[result.score];
+            }
+            if (time) {
+                time.style.display = 'block';
+                time.textContent = result.crack_times_display.offline_slow_hashing_1e4_per_second;
+            }
+            if (crackInfo) crackInfo.style.display = 'block';
+        }
+
+        clearTimeout(leakCheckTimeout);
+        leakCheckTimeout = setTimeout(() => checkPasswordLeak(val), 500);
+    });
+}
+
+if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+        if (checkerInput) {
+            checkerInput.value = '';
+            checkerInput.dispatchEvent(new Event('input'));
+            checkerInput.focus();
+        }
+    });
+}
+
+if (toggleVisBtn) {
+    toggleVisBtn.addEventListener('click', () => {
+        if (checkerInput) {
+            checkerInput.type = checkerInput.type === 'password' ? 'text' : 'password';
+            toggleVisBtn.textContent = checkerInput.type === 'password' ? '🙈' : '🙉';
+            checkerInput.focus();
+        }
+    });
+}
+
+let leakCheckTimeout = null;
 
 async function checkPasswordLeak(password) {
     const reqLeak = document.getElementById('req-leak');
+    if (!reqLeak) return;
+
     if (!password) {
         reqLeak.classList.add('valid');
         reqLeak.innerHTML = '<div class="checkbox">✓</div> No leaks found';
@@ -71,152 +123,140 @@ async function checkPasswordLeak(password) {
     }
 }
 
-let leakCheckTimeout = null;
-
-input.addEventListener('input', () => {
-    const val = input.value;
-    reqUpper.classList.toggle('valid', regexUpper.test(val));
-    reqDigit.classList.toggle('valid', regexDigit.test(val));
-    reqSymbol.classList.toggle('valid', regexSymbol.test(val));
-
-    if (val === '') {
-        strengthBar.style.width = '0%';
-        strengthBar.style.backgroundColor = 'transparent';
-        time.style.display = 'none';
-        crackInfo.style.display = 'none';
-        checkPasswordLeak('');
-        return;
-    }
-
-    const result = zxcvbn(val);
-    strengthBar.style.width = `${(result.score === 0 ? 20 : (result.score + 1) * 20)}%`;
-    strengthBar.style.backgroundColor = strengthColors[result.score];
-    time.style.display = 'block';
-    time.textContent = result.crack_times_display.offline_slow_hashing_1e4_per_second;
-    crackInfo.style.display = 'block';
-
-    clearTimeout(leakCheckTimeout);
-    leakCheckTimeout = setTimeout(() => checkPasswordLeak(val), 500);
-});
-
 // =====================================================================
-// 2. GENERATOR TAB UI LOGIC
+// 2. GENERATOR / ENHANCER TAB UI LOGIC (KHU VỰC DƯỚI)
 // =====================================================================
+const btnGenerate = document.getElementById('btn-generate'); 
 const tabScratch = document.getElementById('tab-scratch');
 const tabInput = document.getElementById('tab-input');
 const modeScratch = document.getElementById('mode-scratch');
 const modeInput = document.getElementById('mode-input');
 
-// Paste this near your other UI element declarations
 const aiLengthSlider = document.getElementById('ai-gen-length');
 const aiLengthVal = document.getElementById('ai-length-val');
 
-// Makes the AI slider number update when dragged
-aiLengthSlider.addEventListener('input', () => {
-    aiLengthVal.textContent = aiLengthSlider.value;
-});
+if (aiLengthSlider && aiLengthVal) {
+    aiLengthSlider.addEventListener('input', () => {
+        aiLengthVal.textContent = aiLengthSlider.value;
+    });
+}
 
-tabScratch.addEventListener('click', () => {
-    tabScratch.classList.add('active');
-    tabInput.classList.remove('active');
-    modeScratch.classList.add('active');
-    modeInput.classList.remove('active');
-});
+if (tabScratch && tabInput && modeScratch && modeInput) {
+    tabScratch.addEventListener('click', () => {
+        tabScratch.classList.add('active');
+        tabInput.classList.remove('active');
+        modeScratch.classList.add('active');
+        modeInput.classList.remove('active');
+    });
 
-tabInput.addEventListener('click', () => {
-    tabInput.classList.add('active');
-    tabScratch.classList.remove('active');
-    modeInput.classList.add('active');
-    modeScratch.classList.remove('active');
-});
+    tabInput.addEventListener('click', () => {
+        tabInput.classList.add('active');
+        tabScratch.classList.remove('active');
+        modeInput.classList.add('active');
+        modeScratch.classList.remove('active');
+    });
+}
 
 const lengthSlider = document.getElementById('gen-length');
 const lengthValDisplay = document.getElementById('length-val');
-lengthSlider.addEventListener('input', () => lengthValDisplay.textContent = lengthSlider.value);
+if (lengthSlider && lengthValDisplay) {
+    lengthSlider.addEventListener('input', () => lengthValDisplay.textContent = lengthSlider.value);
+}
 
 const copyBtn = document.getElementById('copy-btn');
 const genResult = document.getElementById('gen-result');
 
-copyBtn.addEventListener('click', () => {
-    if (genResult.value && genResult.value !== "AI is thinking..." && !genResult.value.includes("Error")) {
-        genResult.select();
-        document.execCommand('copy');
-        const originalIcon = copyBtn.textContent;
-        copyBtn.textContent = '✅';
-        setTimeout(() => copyBtn.textContent = originalIcon, 1500);
-    }
-    
-});
+if (copyBtn && genResult) {
+    copyBtn.addEventListener('click', () => {
+        if (genResult.value && genResult.value !== "AI is thinking..." && !genResult.value.includes("Error")) {
+            genResult.select();
+            document.execCommand('copy');
+            const originalIcon = copyBtn.textContent;
+            copyBtn.textContent = '✅';
+            setTimeout(() => copyBtn.textContent = originalIcon, 1500);
+        }
+    });
+}
 
 // =====================================================================
-// 3. GENERATOR ALGORITHM LOGIC
+// 3. API CALL LOGIC (GENERATE & ENHANCE)
 // =====================================================================
-const btnGenerate = document.getElementById('btn-generate');
-const baseWordInput = document.getElementById('gen-base-word');
-const incUpper = document.getElementById('inc-upper');
-const incNum = document.getElementById('inc-num');
-const incSym = document.getElementById('inc-sym');
-const incAmbig = document.getElementById('inc-ambig');
+if (btnGenerate) {
+    btnGenerate.addEventListener('click', async () => {
+        const isScratchMode = modeScratch && modeScratch.classList.contains('active');
 
-const lowerChars = "abcdefghijkmnopqrstuvwxyz";
-const upperChars = "ABCDEFGHJKLMNPQRSTUVWXYZ";
-const numChars = "23456789";
-const symChars = "!@#$%^&*()_+-=[]{};':\\|,.<>/?";
-const ambigChars = "il1Lo0O";
+        if (isScratchMode) {
+            // --- MODE 1: FROM SCRATCH ---
+            const targetLength = parseInt(lengthSlider ? lengthSlider.value : 16) || 16;
+            const requestData = {
+                uppercase: document.getElementById('inc-upper')?.checked ?? true,
+                number: document.getElementById('inc-num')?.checked ?? true,
+                special_character: document.getElementById('inc-sym')?.checked ?? true,
+                length: targetLength,
+                avoid_ambiguous: document.getElementById('inc-ambig')?.checked ?? false
+            };
 
-btnGenerate.addEventListener('click', async () => {
-    const isScratchMode = modeScratch.classList.contains('active');
-    const length = parseInt(lengthSlider.value) || 16;
+            try {
+                const response = await fetch("http://127.0.0.1:8000/generate", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(requestData)
+                });
 
-    if (isScratchMode) {
-        // --- ALGORITHM 1: Generate From Scratch ---
-        let charset = lowerChars;
-        if (document.getElementById('inc-upper').checked) charset += upperChars;
-        if (document.getElementById('inc-num').checked) charset += numChars;
-        if (document.getElementById('inc-sym').checked) charset += symChars;
-        if (!document.getElementById('inc-ambig').checked) charset += ambigChars; // Adds tricky chars if NOT avoided
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    alert(errorData.detail || "Đã xảy ra lỗi!");
+                    return;
+                }
 
-        if (charset === "") charset = lowerChars;
+                const result = await response.json();
+                if (genResult) genResult.value = result.password;
 
-        let pw = "";
-        for (let i = 0; i < length; i++) {
-            pw += charset[Math.floor(Math.random() * charset.length)];
+            } catch (error) {
+                console.error("Lỗi kết nối Generator:", error);
+                alert("Không thể kết nối tới server Backend Python!");
+            }
+        } else {
+            // --- MODE 2: FROM INPUT (STRONG PASSWORD ENHANCER) ---
+            const targetLength = parseInt(aiLengthSlider ? aiLengthSlider.value : 8) || 8;
+            
+            // CHỈ LẤY Ô INPUT Ở KHU VỰC DƯỚI (Không lấy 'pwdInput' của Checker ở trên)
+            const baseWordInput = document.getElementById('gen-base-word');
+            const baseWordValue = baseWordInput ? baseWordInput.value.trim() : "";
+
+            const requestData = {
+                input_password: baseWordValue, 
+                uppercase: document.getElementById('ai-inc-upper')?.checked ?? true, 
+                number: document.getElementById('ai-inc-num')?.checked ?? true,
+                special_character: document.getElementById('ai-inc-sym')?.checked ?? true,
+                length: targetLength,
+                avoid_ambiguous: document.getElementById('ai-inc-ambig')?.checked ?? false 
+            };
+
+            if (genResult) genResult.value = "AI is thinking..."; 
+
+            try {
+                const response = await fetch("http://127.0.0.1:8000/enhance", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(requestData)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    alert(errorData.detail || "Đã xảy ra lỗi khi tối ưu mật khẩu!");
+                    if (genResult) genResult.value = "";
+                    return;
+                }
+
+                const result = await response.json();
+                if (genResult) genResult.value = result.password; 
+
+            } catch (error) {
+                console.error("Lỗi kết nối Enhancer:", error);
+                alert("Không thể kết nối tới server xử lý nâng cấp mật khẩu!");
+                if (genResult) genResult.value = "Error";
+            }
         }
-        genResult.value = pw;
-
- } else {
-        // --- ALGORITHM 2: AI Generate From Input ---
-        let baseWord = document.getElementById('gen-base-word').value.trim();
-        genResult.value = "AI is thinking...";
-
-        // Grab values from the new AI-specific inputs!
-        const aiLength = parseInt(document.getElementById('ai-gen-length').value) || 16;
-        const aiUpper = document.getElementById('ai-inc-upper').checked;
-        const aiNum = document.getElementById('ai-inc-num').checked;
-        const aiSym = document.getElementById('ai-inc-sym').checked;
-        const aiAmbig = document.getElementById('ai-inc-ambig').checked;
-
-        try {
-            const response = await fetch('http://127.0.0.1:8000/enhance', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    weak_password: baseWord,
-                    target_len: aiLength, // Using the new AI slider length!
-                    inc_upper: aiUpper,
-                    inc_num: aiNum,
-                    inc_sym: aiSym,
-                    inc_ambig: aiAmbig 
-                })
-            });
-
-            if (!response.ok) throw new Error("Server error");
-            const data = await response.json();
-            genResult.value = data.enhanced_password;
-
-        } catch (error) {
-            console.error("API Error:", error);
-            genResult.value = "Error connecting to backend API.";
-        }
-    }
-});
+    });
+}
