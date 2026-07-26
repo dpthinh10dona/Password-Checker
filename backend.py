@@ -1,63 +1,90 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import uvicorn
 
-# Importing the AI function from your ai/inference.py file
-from ai.inference import process_password 
+# Giả sử hàm logic đã chuyển sang hàm đồng bộ (def thường, bỏ async)
+from logic.StrongPasswordGenerator import StrongPasswordGenerator
+from logic.StrongPasswordEnhancer import StrongPasswordEnhancer 
 
-app = FastAPI(title="TrustMiiBro Password Enhancer API")
-
-# Allows your frontend HTML to talk to this backend
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  
-    allow_credentials=True,
-    allow_methods=["*"],  
-    allow_headers=["*"],  
+app = FastAPI(
+    title="TrustMiiBro Password Generator API",
+    description="API tạo và nâng cấp mật khẩu an toàn",
+    version="1.0.0"
 )
 
+# 1. Bảo mật CORS (Thay '*' bằng domain thực tế khi deploy)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # TODO: Đổi thành ["https://yourdomain.com"] khi deploy
+    allow_credentials=True,
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
+)
+
+# 2. Schema Validation với Pydantic Field
 class PasswordRequest(BaseModel):
-    weak_password: str
-    target_len: int = 16
-    inc_upper: bool = True
-    inc_num: bool = True
-    inc_sym: bool = True
-    inc_ambig: bool = False
+    uppercase: bool = True
+    number: bool = True
+    special_character: bool = True
+    length: int = Field(default=16, ge=4, le=128, description="Độ dài mật khẩu từ 4 đến 128")
+    avoid_ambiguous: bool = False
 
-class PasswordResponse(BaseModel):
-    original_password: str
-    enhanced_password: str
-    score_percentage: int
-    strength_label: str
+class EnhanceRequest(PasswordRequest):
+    input_password: str = Field(default="", max_length=256, description="Mật khẩu gốc cần nâng cấp")
 
-@app.post("/enhance", response_model=PasswordResponse)
-def api_enhance_password(request: PasswordRequest):
+
+@app.post("/generate", status_code=status.HTTP_200_OK)
+async def api_generate_password(request: PasswordRequest):
     try:
-        # Call the AI function with all user preferences
-        ai_result = process_password(
-            request.weak_password, 
-            request.target_len,
-            request.inc_upper,
-            request.inc_num,
-            request.inc_sym,
-            request.inc_ambig
+        # Nếu hàm logic không còn async, bỏ await ở đây
+        password = await StrongPasswordGenerator(
+            uppercase=request.uppercase,
+            number=request.number,
+            special_character=request.special_character,
+            length=request.length,
+            avoid_ambiguous=request.avoid_ambiguous
         )
-        
-        # Map the 0-4 AI score to a percentage (20-100%) for the frontend progress bar
-        score = ai_result.get("strength_score", 0)
-        percentage_map = {0: 20, 1: 40, 2: 60, 3: 80, 4: 100}
-        score_percentage = percentage_map.get(score, 20)
-        
-        return PasswordResponse(
-            original_password=request.weak_password,
-            enhanced_password=ai_result["enhanced"],
-            score_percentage=score_percentage, 
-            strength_label=ai_result["strength_label"]
+        return {"password": password}
+    
+    except ValueError as ve:
+        # Hứng lỗi nghiệp vụ (ví dụ: người dùng bỏ chọn tất cả option)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail=str(ve)
         )
-        
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"AI Processing Error: {str(e)}")
+        # Hứng lỗi hệ thống không lường trước
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+            detail="Đã xảy ra lỗi hệ thống, vui lòng thử lại sau."
+        )
+
+
+@app.post("/enhance", status_code=status.HTTP_200_OK)
+async def api_enhance_password(request: EnhanceRequest):
+    try:
+        enhanced = await StrongPasswordEnhancer(
+            input_password=request.input_password,
+            uppercase=request.uppercase,
+            number=request.number,
+            special_character=request.special_character,
+            length=request.length,
+            avoid_ambiguous=request.avoid_ambiguous
+        )
+        return {"password": enhanced}
+    
+    except ValueError as ve:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, 
+            detail=str(ve)
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+            detail="Đã xảy ra lỗi hệ thống, vui lòng thử lại sau."
+        )
+
 
 if __name__ == "__main__":
     uvicorn.run("backend:app", host="127.0.0.1", port=8000, reload=True)
