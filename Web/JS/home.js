@@ -260,3 +260,31 @@ if (btnGenerate) {
         }
     });
 }
+
+// =====================================================================
+// 4. THEME SWITCHER LOGIC
+// =====================================================================
+const themeSelect = document.getElementById('themeSelect');
+
+if (themeSelect) {
+    // Load saved theme
+    const savedTheme = localStorage.getItem('trustmii_theme') || 'dark';
+    themeSelect.value = savedTheme;
+    applyTheme(savedTheme);
+
+    themeSelect.addEventListener('change', (e) => {
+        const theme = e.target.value;
+        applyTheme(theme);
+        localStorage.setItem('trustmii_theme', theme);
+    });
+}
+
+function applyTheme(theme) {
+    // Remove all existing theme classes
+    document.body.classList.remove('theme-light', 'theme-lofi', 'theme-chill', 'theme-eco');
+    
+    // Add the new theme class if it's not the default 'dark'
+    if (theme !== 'dark') {
+        document.body.classList.add(`theme-${theme}`);
+    }
+}
