@@ -1,82 +1,110 @@
-# Trust Mii Broo – Password Checker & Generator
+<div align="center">
+  <img src="Web/picture/homeicon.png" alt="Trust Mii Broo Logo" width="120"/>
+  <h1>Trust Mii Broo</h1>
+  <p><strong>Advanced Password Security & Generator Studio</strong></p>
+  
+  [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+  [![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
+  [![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Glossary/HTML5)
+  [![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS)
+  [![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+</div>
 
-Ứng dụng web giúp kiểm tra độ mạnh mật khẩu, kiểm tra mật khẩu có xuất hiện trong các vụ rò rỉ phổ biến hay không, đồng thời sinh hoặc nâng cấp mật khẩu theo tiêu chí người dùng chọn.
+---
 
-## Tính năng
+**Trust Mii Broo** là một giải pháp toàn diện giúp người dùng đánh giá mức độ an toàn của mật khẩu, phát hiện rò rỉ dữ liệu (data breaches), và tạo ra các mật khẩu có độ bảo mật cao thông qua thuật toán thông minh.
 
-- Đánh giá độ mạnh và ước tính thời gian bẻ mật khẩu bằng [zxcvbn](https://github.com/dropbox/zxcvbn).
-- Kiểm tra mật khẩu rò rỉ qua dịch vụ Pwned Passwords theo cơ chế k-anonymity: trình duyệt chỉ gửi 5 ký tự đầu của mã băm SHA-1, không gửi mật khẩu thô.
-- Sinh mật khẩu mới theo độ dài và các nhóm ký tự: chữ hoa, số, ký tự đặc biệt.
-- Nâng cấp mật khẩu từ một **base word**: giữ base word trong kết quả và bổ sung các nhóm ký tự đã chọn.
-- Tùy chọn loại bỏ ký tự dễ nhầm như `I`, `l`, `O`, `0`.
+## ✨ Tính năng nổi bật (Key Features)
 
-## Công nghệ
+- 🛡️ **Phân tích độ mạnh (Strength Checker):** Sử dụng thuật toán [zxcvbn](https://github.com/dropbox/zxcvbn) từ Dropbox để đánh giá thực tế khả năng chống brute-force và thời gian bẻ khóa (crack time).
+- 🚨 **Kiểm tra rò rỉ (Breach Detection):** Tích hợp API của `Have I Been Pwned` (k-anonymity). Chỉ băm (hash) SHA-1 mật khẩu tại trình duyệt và gửi 5 ký tự đầu tiên lên server, đảm bảo **mật khẩu của bạn không bao giờ rời khỏi thiết bị**.
+- 🎲 **Trình tạo mật khẩu ngẫu nhiên (Zero-Knowledge Generator):** Sinh mật khẩu siêu việt dựa trên các tiêu chí tùy chỉnh (độ dài, chữ hoa, chữ thường, số, ký tự đặc biệt).
+- 🧠 **AI Password Enhancer:** Biến một từ khóa dễ nhớ (Base Word) thành một mật khẩu phức tạp nhưng vẫn giữ được cốt lõi để bạn dễ dàng ghi nhớ.
+- 🎨 **Modern & Adaptive UI:** Giao diện tối giản, sang trọng (Glassmorphism), hỗ trợ đa giao diện (Dark, Light, Lofi, Chill, Eco).
 
-- Frontend: HTML, CSS, JavaScript thuần
-- Backend: Python, FastAPI, Uvicorn
-- Thư viện frontend: zxcvbn (CDN)
+---
 
-## Cấu trúc dự án
+## 🛠 Công nghệ sử dụng (Tech Stack)
 
-```text
-.
-├── backend.py                     # FastAPI API
+### Frontend (Client-side)
+- Thuần HTML5, CSS3, Vanilla JavaScript (Không framework cồng kềnh, tối ưu hiệu suất).
+- CSS Variables cho hệ thống Theme động.
+- Trải nghiệm UI Glassmorphism hiện đại.
+
+### Backend (Server-side)
+- **Framework:** FastAPI (Python) - Nhanh, chuẩn RESTful, tích hợp sẵn Swagger UI.
+- **Server:** Uvicorn (ASGI server hiệu năng cao).
+- **Core Logic:** Các module Python xử lý chuỗi (String manipulation), sinh số ngẫu nhiên an toàn sinh trắc (Cryptographically secure RNG).
+
+---
+
+## 📂 Cấu trúc mã nguồn (Project Structure)
+
+```bash
+Trust-Mii-Broo/
+├── backend.py                     # API Router & FastAPI Application entrypoint
 ├── logic/
-│   ├── StrongPasswordGenerator.py # Sinh mật khẩu từ đầu
-│   └── StrongPasswordEnhancer.py  # Nâng cấp từ base word
-└── Web/
-    ├── home.html                  # Giao diện chính
-    ├── CSS/home.css
-    ├── JS/home.js
-    └── picture/
+│   ├── StrongPasswordGenerator.py # Thuật toán sinh mật khẩu ngẫu nhiên
+│   └── StrongPasswordEnhancer.py  # Thuật toán cường hóa từ khóa (Base word)
+└── Web/                           # Frontend Assets
+    ├── home.html                  # Giao diện chính (Dashboard)
+    ├── CSS/
+    │   └── home.css               # Stylesheet (bao gồm Theme Engine)
+    ├── JS/
+    │   └── home.js                # Xử lý logic Client (Leak check, API calls, Themes)
+    └── picture/                   # Tài nguyên hình ảnh, Logo
 ```
 
-## Cài đặt và chạy
+---
 
-Yêu cầu: Python 3.10+.
+## 🚀 Hướng dẫn cài đặt & Chạy (Getting Started)
+
+### 1. Yêu cầu hệ thống (Prerequisites)
+- [Python 3.10](https://www.python.org/downloads/) trở lên.
+- Trình duyệt web hiện đại (Chrome, Edge, Firefox, Safari).
+
+### 2. Thiết lập môi trường Backend
+Mở Terminal/PowerShell tại thư mục gốc của dự án:
 
 ```powershell
+# Tạo môi trường ảo (Virtual Environment)
 python -m venv .venv
+
+# Kích hoạt môi trường ảo (Dành cho Windows PowerShell)
 .\.venv\Scripts\Activate.ps1
+# (Dành cho macOS/Linux: source .venv/bin/activate)
+
+# Cài đặt các thư viện phụ thuộc
 pip install fastapi "uvicorn[standard]"
 ```
 
-Mở một terminal để chạy API:
+### 3. Khởi chạy Dịch vụ
 
+Bạn sẽ cần chạy 2 dịch vụ song song: Backend API và Frontend Server.
+
+**Terminal 1 (Backend - FastAPI):**
 ```powershell
 uvicorn backend:app --reload
 ```
+*API sẽ chạy tại `http://127.0.0.1:8000`. Bạn có thể xem tài liệu API tương tác tại `http://127.0.0.1:8000/docs`.*
 
-API sẽ chạy tại `http://127.0.0.1:8000` và tài liệu tương tác có tại `http://127.0.0.1:8000/docs`.
-
-Mở terminal thứ hai để phục vụ frontend:
-
+**Terminal 2 (Frontend - Web Server):**
 ```powershell
 python -m http.server 5500 --directory Web
 ```
 
-Sau đó truy cập `http://127.0.0.1:5500/home.html`.
+👉 **Bước cuối:** Mở trình duyệt và truy cập: **`http://127.0.0.1:5500/home.html`**
 
-> Frontend hiện gọi backend tại `http://127.0.0.1:8000`. Hãy chạy cả hai dịch vụ khi phát triển cục bộ.
+---
 
-## Sử dụng Password Generator
+## 📖 Tài liệu API (API Reference)
 
-### From Scratch
+Backend cung cấp các endpoints RESTful chuẩn chỉnh:
 
-Chọn độ dài và các loại ký tự muốn có, sau đó bấm **Generate**. Mật khẩu luôn có chữ thường; nếu bật các tùy chọn còn lại, kết quả sẽ có ít nhất một chữ hoa, số hoặc ký tự đặc biệt tương ứng.
+### 1. `POST /generate`
+Sinh một mật khẩu hoàn toàn mới từ đầu.
 
-### From Input
-
-Nhập base word, chọn độ dài và các tiêu chí trong chính tab **From Input**, rồi bấm **Generate**. Ví dụ, với `dragon`, bật chữ hoa, số và ký tự đặc biệt, kết quả có thể là `?3Ddragon@x7K`.
-
-Nếu bật **Avoid Tricky**, các ký tự dễ nhầm sẽ được loại khỏi phần được sinh thêm; các ký tự đó trong base word cũng được loại để tuân theo tùy chọn này.
-
-## API
-
-### `POST /generate`
-
-Sinh mật khẩu mới.
-
+**Request Body:**
 ```json
 {
   "uppercase": true,
@@ -87,18 +115,17 @@ Sinh mật khẩu mới.
 }
 ```
 
-Phản hồi:
-
+**Response:**
 ```json
 {
   "password": "aG7!pQ2@xL9#vR4s"
 }
 ```
 
-### `POST /enhance`
+### 2. `POST /enhance`
+Cường hóa một từ khóa (Base word) do người dùng cung cấp.
 
-Nâng cấp base word theo các tiêu chí đã chọn.
-
+**Request Body:**
 ```json
 {
   "input_password": "dragon",
@@ -110,20 +137,24 @@ Nâng cấp base word theo các tiêu chí đã chọn.
 }
 ```
 
-Phản hồi:
-
+**Response:**
 ```json
 {
   "password": "!Ddragon4@k8pQ"
 }
 ```
 
-## Lưu ý bảo mật
+---
 
-- Đừng dùng mật khẩu sinh ra cho nhiều tài khoản quan trọng.
-- Base word thường dễ đoán; hãy ưu tiên dùng trình quản lý mật khẩu và mật khẩu ngẫu nhiên, dài.
-- Khi triển khai production, giới hạn `allow_origins` trong CORS ở `backend.py` thành domain frontend thực tế thay vì `*`.
+## 🔒 Lưu ý bảo mật (Security Best Practices)
+- ⚠️ **Base words:** Từ khóa nền (Base word) thường dễ đoán. Khuyến khích sử dụng tính năng **Generate from Scratch** để có độ bảo mật tuyệt đối.
+- 🔑 **Password Manager:** Mật khẩu do hệ thống sinh ra nên được lưu trữ trong một trình quản lý mật khẩu an toàn (như Bitwarden, 1Password).
+- 🌐 **Môi trường Production:** 
+  - Đảm bảo triển khai Backend với chứng chỉ **HTTPS/SSL/TLS**.
+  - Trong tệp `backend.py`, cấu hình `allow_origins` của CORS Middleware thay vì để `["*"]` hãy đặt chính xác domain của frontend để tránh rủi ro CSRF/XSS.
 
-## Giấy phép
+---
 
-Chưa có giấy phép được khai báo. Hãy thêm tệp `LICENSE` trước khi phát hành hoặc chia sẻ công khai.
+<div align="center">
+  <sub>Được thiết kế và phát triển với ❤️ bởi đội ngũ Trust Mii Broo.</sub>
+</div>
