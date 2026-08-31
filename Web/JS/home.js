@@ -197,7 +197,7 @@ if (btnGenerate) {
             };
 
             try {
-                const response = await fetch("http://127.0.0.1:8000/generate", {
+                const response = await fetch("/generate", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(requestData)
@@ -236,7 +236,7 @@ if (btnGenerate) {
             if (genResult) genResult.value = "AI is thinking..."; 
 
             try {
-                const response = await fetch("http://127.0.0.1:8000/enhance", {
+                const response = await fetch("/enhance", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(requestData)

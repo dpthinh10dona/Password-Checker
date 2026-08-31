@@ -1,7 +1,10 @@
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 import uvicorn
+import os
 
 # Giả sử hàm logic đã chuyển sang hàm đồng bộ (def thường, bỏ async)
 from logic.StrongPasswordGenerator import StrongPasswordGenerator
@@ -12,6 +15,22 @@ app = FastAPI(
     description="API tạo và nâng cấp mật khẩu an toàn",
     version="1.0.0"
 )
+
+# Phục vụ thư mục Web chứa các file tĩnh (CSS, JS, ảnh)
+if os.path.exists("Web"):
+    app.mount("/Web", StaticFiles(directory="Web"), name="Web")
+    # Cho phép truy cập thư mục CSS/JS trực tiếp (để tương thích với href="CSS/home.css" trong home.html)
+    app.mount("/CSS", StaticFiles(directory="Web/CSS"), name="CSS")
+    app.mount("/JS", StaticFiles(directory="Web/JS"), name="JS")
+    app.mount("/picture", StaticFiles(directory="Web/picture"), name="picture")
+
+# Route trả về trang chủ
+@app.get("/")
+def read_root():
+    if os.path.exists("Web/home.html"):
+        return FileResponse("Web/home.html")
+    return {"message": "Server đang chạy! (Không tìm thấy Web/home.html)"}
+
 
 # 1. Bảo mật CORS (Thay '*' bằng domain thực tế khi deploy)
 app.add_middleware(
