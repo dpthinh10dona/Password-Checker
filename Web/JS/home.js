@@ -83,8 +83,10 @@ if (toggleVisBtn) {
 }
 
 let leakCheckTimeout = null;
+let leakCheckRequestId = 0;
 
 async function checkPasswordLeak(password) {
+    const requestId = ++leakCheckRequestId;
     const reqLeak = document.getElementById('req-leak');
     if (!reqLeak) return;
 
@@ -105,7 +107,11 @@ async function checkPasswordLeak(password) {
 
     try {
         const response = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`);
+        if (!response.ok) {
+            throw new Error(`Leak check failed with status ${response.status}`);
+        }
         const text = await response.text();
+        if (requestId !== leakCheckRequestId) return;
         const match = text.split('\n').find(line => line.startsWith(suffix));
 
         if (match) {
@@ -119,7 +125,11 @@ async function checkPasswordLeak(password) {
             reqLeak.style.color = '';
         }
     } catch (error) {
+        if (requestId !== leakCheckRequestId) return;
         console.error("Leak check error:", error);
+        reqLeak.classList.remove('valid');
+        reqLeak.innerHTML = '<div class="checkbox">?</div> Leak check unavailable';
+        reqLeak.style.color = '';
     }
 }
 

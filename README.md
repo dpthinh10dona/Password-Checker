@@ -75,25 +75,53 @@ python -m venv .venv
 # (Dành cho macOS/Linux: source .venv/bin/activate)
 
 # Cài đặt các thư viện phụ thuộc
-pip install fastapi "uvicorn[standard]"
+python -m pip install -r requirements.txt
 ```
 
-### 3. Khởi chạy Dịch vụ
+### 3. Khởi chạy ứng dụng
 
-Bạn sẽ cần chạy 2 dịch vụ song song: Backend API và Frontend Server.
+FastAPI phục vụ cả API và frontend, vì vậy chỉ cần chạy một server:
 
-**Terminal 1 (Backend - FastAPI):**
 ```powershell
 uvicorn backend:app --reload
 ```
-*API sẽ chạy tại `http://127.0.0.1:8000`. Bạn có thể xem tài liệu API tương tác tại `http://127.0.0.1:8000/docs`.*
 
-**Terminal 2 (Frontend - Web Server):**
+👉 Mở giao diện tại **`http://127.0.0.1:8000`**. Tài liệu API tương tác nằm tại **`http://127.0.0.1:8000/docs`**.
+
+---
+
+## ☁️ Deploy trên Vercel
+
+Dự án đã khai báo `backend:app` là entrypoint trong `pyproject.toml`, nên không cần Build Command hay Output Directory.
+
+### Cách 1: Deploy bằng Git
+
+1. Push repository lên GitHub, GitLab hoặc Bitbucket.
+2. Vào [vercel.com/new](https://vercel.com/new) và import repository.
+3. Giữ nguyên cấu hình Vercel tự nhận diện, sau đó chọn **Deploy**.
+4. Kiểm tra trang chủ và endpoint `/docs` trên preview URL.
+
+Mỗi lần push sau đó sẽ tự tạo một deployment mới.
+
+### Cách 2: Deploy bằng Vercel CLI
+
 ```powershell
-python -m http.server 5500 --directory Web
+npm install --global vercel
+vercel login
+vercel
 ```
 
-👉 **Bước cuối:** Mở trình duyệt và truy cập: **`http://127.0.0.1:5500/home.html`**
+Lệnh `vercel` tạo preview deployment. Sau khi kiểm tra thành công, deploy production:
+
+```powershell
+vercel --prod
+```
+
+Frontend và API chạy cùng domain nên không cần CORS. Chỉ khi tách frontend sang domain khác, thêm biến môi trường `ALLOWED_ORIGINS` trong Vercel, ví dụ:
+
+```text
+ALLOWED_ORIGINS=https://app.example.com,https://preview.example.com
+```
 
 ---
 
